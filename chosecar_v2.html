@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="Icon" href="img/Logo_Trường_Đại_Học_Sư_Phạm_Kỹ_Thuật_TP_Hồ_Chí_Minh.png">
+
+<title>Parking Management System</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f4f7fc;
+    padding:30px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:30px;
+    color:#222;
+}
+
+/* =========================
+SUMMARY
+========================= */
+
+.summary{
+
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+}
+
+.card-summary{
+
+    background:white;
+    width:220px;
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card-summary h2{
+
+    font-size:40px;
+    margin-bottom:10px;
+    color:#1976d2;
+}
+
+.card-summary p{
+
+    color:#555;
+    font-size:18px;
+}
+
+/* =========================
+GRID
+========================= */
+
+.container{
+
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+    max-width:1200px;
+    margin:auto;
+}
+
+/* =========================
+CARD
+========================= */
+
+.slot{
+
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+.slot:hover{
+
+    transform:translateY(-5px);
+}
+
+.slot img{
+
+    width:100%;
+    height:180px;
+    object-fit:contain;
+}
+
+.slot h2{
+
+    margin:15px 0;
+    color:#333;
+}
+
+/* =========================
+STATUS
+========================= */
+
+.status{
+
+    padding:12px;
+    border-radius:8px;
+    color:white;
+    font-weight:bold;
+    margin:15px 0;
+    font-size:18px;
+}
+
+.full{
+
+    background:#e53935;
+}
+
+.empty{
+
+    background:#43a047;
+}
+
+/* =========================
+BUTTONS
+========================= */
+
+.buttons{
+
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+button{
+
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+    font-size:15px;
+    transition:0.3s;
+}
+
+button:hover{
+
+    opacity:0.85;
+}
+
+.in-btn{
+
+    background:#1976d2;
+}
+
+.out-btn{
+
+    background:#ff5722;
+}
+
+.info-btn{
+
+    background:#7b1fa2;
+}
+
+.exit-container{
+
+    text-align:center;
+    margin-bottom:30px;
+}
+
+#exitBtn{
+
+    background:#e53935;
+    color:white;
+
+    border:none;
+
+    padding:12px 25px;
+
+    border-radius:10px;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+#exitBtn:hover{
+
+    opacity:0.85;
+}
+
+/* =========================
+POPUP
+========================= */
+
+#popup,
+#infoPopup{
+
+    position:fixed;
+
+    top:0;
+    left:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,0.5);
+
+    display:none;
+
+    justify-content:center;
+    align-items:center;
+
+    z-index:999;
+}
+
+.popup-content{
+
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    width:320px;
+    text-align:center;
+}
+
+.popup-buttons{
+
+    margin-top:20px;
+
+    display:flex;
+    justify-content:center;
+    gap:10px;
+}
+
+#confirmBtn{
+
+    background:#1976d2;
+}
+
+#cancelBtn{
+
+    background:#757575;
+}
+
+#closeInfoBtn{
+
+    background:#1976d2;
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+@media(max-width:768px){
+
+    .container{
+
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>PARKING MANAGEMENT SYSTEM</h1>
+
+<!-- =========================
+SUMMARY
+========================= -->
+
+<div class="exit-container">
+
+    <button id="exitBtn">
+        ⬅ Thoát
+    </button>
+
+</div>
+
+<div class="summary">
+
+    <div class="card-summary">
+
+        <h2 id="totalSlots">
+            9
+        </h2>
+
+        <p>Tổng vị trí</p>
+
+    </div>
+
+    <div class="card-summary">
+
+        <h2
+            id="emptySlots"
+            style="color:#43a047;"
+        >
+            0
+        </h2>
+
+        <p>Vị trí còn trống</p>
+
+    </div>
+
+    <div class="card-summary">
+
+        <h2
+            id="fullSlots"
+            style="color:#e53935;"
+        >
+            0
+        </h2>
+
+        <p>Vị trí có xe</p>
+
+    </div>
+
+</div>
+
+<!-- =========================
+GRID
+========================= -->
+
+<div class="container" id="parkingContainer"></div>
+
+<!-- =========================
+POPUP CONFIRM
+========================= -->
+
+<div id="popup">
+
+    <div class="popup-content">
+
+        <h2 id="popupTitle">
+            Xác nhận
+        </h2>
+
+        <p id="popupText"></p>
+
+        <div class="popup-buttons">
+
+            <button id="confirmBtn">
+                Xác nhận
+            </button>
+
+            <button id="cancelBtn">
+                Hủy
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================
+POPUP INFO
+========================= -->
+
+<div id="infoPopup">
+
+    <div class="popup-content">
+
+        <h2>
+            🚗 Thông tin vị trí
+        </h2>
+
+        <p id="infoText"></p>
+
+        <div class="popup-buttons">
+
+            <button id="closeInfoBtn">
+                Đóng
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script type="module">
+
+// =============================
+// FIREBASE IMPORT
+// =============================
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    onValue,
+    set
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// =============================
+// FIREBASE CONFIG
+// =============================
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyBTWpFWI6qf975JB2RV8Q1Vs-YTta5PlYY",
+
+    authDomain: "ps-01-583ef.firebaseapp.com",
+
+    databaseURL:
+    "https://ps-01-583ef-default-rtdb.firebaseio.com",
+
+    projectId: "ps-01-583ef",
+
+    storageBucket:
+    "ps-01-583ef.firebasestorage.app",
+
+    messagingSenderId: "807899927486",
+
+    appId:
+    "1:807899927486:web:c729d1ab88c916fbaddfef",
+
+    measurementId: "G-K3FFQTTCQY"
+};
+
+// =============================
+// INIT FIREBASE
+// =============================
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+// =============================
+// IMAGE PATH
+// =============================
+
+// THAY 2 FILE NÀY TRONG THƯ MỤC img
+
+const IMAGE_HAVE_CAR =
+"img/honda-civic-x-hatchback-2017-V-3287-9148-1474017702.JPG";
+
+const IMAGE_EMPTY =
+"img/SIEMENS.PNG";
+
+// =============================
+// CREATE UI
+// =============================
+
+const container =
+document.getElementById("parkingContainer");
+
+for(let i = 1; i <= 9; i++){
+
+    container.innerHTML += `
+
+        <div class="slot">
+
+            <img
+                id="img${i}"
+                src="${IMAGE_EMPTY}"
+                alt=""
+            >
+
+            <h2>
+                Location ${i}
+            </h2>
+
+            <div
+                class="status empty"
+                id="status${i}"
+            >
+                Không có xe
+            </div>
+
+            <div class="buttons">
+
+                <button
+                    class="info-btn"
+                    onclick="showInfo(${i})"
+                >
+                    Thông tin
+                </button>
+
+                <button
+                    class="in-btn"
+                    onclick="parkCar(${i})"
+                >
+                    Gửi vào
+                </button>
+
+                <button
+                    class="out-btn"
+                    onclick="removeCar(${i})"
+                >
+                    Lấy ra
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+// =============================
+// READ FIREBASE REALTIME
+// =============================
+
+const statusRef =
+ref(db, "Status_Location");
+
+onValue(statusRef, (snapshot) => {
+
+    const data = snapshot.val();
+
+    let emptyCount = 0;
+
+    let fullCount = 0;
+
+    if(data){
+
+        for(let i = 1; i <= 9; i++){
+
+            const value =
+            data["L" + i];
+
+            const statusDiv =
+            document.getElementById(`status${i}`);
+
+            const img =
+            document.getElementById(`img${i}`);
+
+            // =====================
+            // CÓ XE
+            // =====================
+
+            if(value == 1){
+
+                fullCount++;
+
+                statusDiv.innerHTML =
+                "Có xe";
+
+                statusDiv.className =
+                "status full";
+
+                img.src =
+                IMAGE_HAVE_CAR;
+
+            }
+
+            // =====================
+            // KHÔNG CÓ XE
+            // =====================
+
+            else{
+
+                emptyCount++;
+
+                statusDiv.innerHTML =
+                "Không có xe";
+
+                statusDiv.className =
+                "status empty";
+
+                img.src =
+                IMAGE_EMPTY;
+
+            }
+
+        }
+
+        // =====================
+        // UPDATE SUMMARY
+        // =====================
+
+        document.getElementById("totalSlots")
+        .innerHTML = 9;
+
+        document.getElementById("emptySlots")
+        .innerHTML = emptyCount;
+
+        document.getElementById("fullSlots")
+        .innerHTML = fullCount;
+
+    }
+
+});
+
+// =============================
+// POPUP VARIABLES
+// =============================
+
+const popup =
+document.getElementById("popup");
+
+const popupTitle =
+document.getElementById("popupTitle");
+
+const popupText =
+document.getElementById("popupText");
+
+const confirmBtn =
+document.getElementById("confirmBtn");
+
+const cancelBtn =
+document.getElementById("cancelBtn");
+
+let actionType = "";
+
+let currentId = 0;
+
+// =============================
+// OPEN POPUP
+// =============================
+
+window.parkCar = function(id){
+
+    currentId = id;
+
+    actionType = "park";
+
+    popup.style.display = "flex";
+
+    popupTitle.innerHTML =
+    "Xác nhận gửi xe";
+
+    popupText.innerHTML =
+    `Bạn có chắc muốn gửi xe vào vị trí ${id}?`;
+
+}
+
+window.removeCar = function(id){
+
+    currentId = id;
+
+    actionType = "remove";
+
+    popup.style.display = "flex";
+
+    popupTitle.innerHTML =
+    "Xác nhận lấy xe";
+
+    popupText.innerHTML =
+    `Bạn có chắc muốn lấy xe ở vị trí ${id}?`;
+
+}
+
+// =============================
+// CONFIRM ACTION
+// =============================
+
+confirmBtn.onclick = function(){
+
+    // GỬI XE
+
+    if(actionType === "park"){
+
+        set(ref(db, "Control_Motor"), {
+
+            location: currentId,
+            status: 10
+
+        });
+
+    }
+
+    // LẤY XE
+
+    else if(actionType === "remove"){
+
+        set(ref(db, "Control_Motor"), {
+
+            location: currentId,
+            status: 12
+
+        });
+
+    }
+
+    popup.style.display = "none";
+
+}
+
+// =============================
+// CLOSE POPUP
+// =============================
+
+cancelBtn.onclick = function(){
+
+    popup.style.display = "none";
+
+}
+
+// =============================
+// INFO POPUP
+// =============================
+
+const infoPopup =
+document.getElementById("infoPopup");
+
+const infoText =
+document.getElementById("infoText");
+
+const closeInfoBtn =
+document.getElementById("closeInfoBtn");
+
+// =============================
+// SHOW INFO
+// =============================
+
+window.showInfo = function(id){
+
+    const status =
+    document.getElementById(`status${id}`).innerHTML;
+
+    // =========================
+    // MÃ THẺ
+    // =========================
+
+    const cardID =
+    "CARD_" + id;
+
+    // =========================
+    // MẬT KHẨU
+    // =========================
+
+    const password =
+    "PASS_" + id;
+
+    // =========================
+    // HIỂN THỊ POPUP
+    // =========================
+
+    infoText.innerHTML = `
+
+        📍 <b>Vị trí:</b>
+        ${id}
+
+        <br><br>
+
+        🚦 <b>Trạng thái:</b>
+        ${status}
+
+        <br><br>
+
+        🪪 <b>Mã thẻ:</b>
+        ${cardID}
+
+        <br><br>
+
+        🔐 <b>Mật khẩu:</b>
+        ${password}
+
+    `;
+
+    infoPopup.style.display = "flex";
+
+}
+
+// =============================
+// CLOSE INFO
+// =============================
+
+closeInfoBtn.onclick = function(){
+
+    infoPopup.style.display = "none";
+
+}
+
+// =============================
+// CLICK OUTSIDE CLOSE
+// =============================
+
+window.onclick = function(event){
+
+    if(event.target == popup){
+
+        popup.style.display = "none";
+    }
+
+    if(event.target == infoPopup){
+
+        infoPopup.style.display = "none";
+    }
+
+}
+
+
+// =============================
+// EXIT BUTTON
+// =============================
+
+document.getElementById("exitBtn")
+.addEventListener("click", function(){
+
+    window.location.href =
+    "index.html";
+
+});
+
+</script>
+
+</body>
+</html>

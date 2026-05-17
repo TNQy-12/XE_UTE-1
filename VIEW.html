@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="Icon" href="img/Logo_Trường_Đại_Học_Sư_Phạm_Kỹ_Thuật_TP_Hồ_Chí_Minh.png">
+
+<title>Parking Management System</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#f4f7fc;
+    padding:30px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#222;
+}
+
+/* =========================
+EXIT BUTTON
+========================= */
+
+.exit-container{
+
+    text-align:center;
+    margin-bottom:30px;
+}
+
+#exitBtn{
+
+    background:#e53935;
+    color:white;
+
+    border:none;
+
+    padding:12px 25px;
+
+    border-radius:10px;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+#exitBtn:hover{
+
+    opacity:0.85;
+}
+
+/* =========================
+SUMMARY
+========================= */
+
+.summary{
+
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+}
+
+.card-summary{
+
+    background:white;
+    width:220px;
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card-summary h2{
+
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.card-summary p{
+
+    color:#555;
+    font-size:18px;
+}
+
+/* =========================
+GRID
+========================= */
+
+.container{
+
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+    max-width:1200px;
+    margin:auto;
+}
+
+/* =========================
+CARD
+========================= */
+
+.slot{
+
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+.slot:hover{
+
+    transform:translateY(-5px);
+}
+
+.slot img{
+
+    width:100%;
+    height:180px;
+    object-fit:contain;
+}
+
+.slot h2{
+
+    margin:15px 0;
+    color:#333;
+}
+
+/* =========================
+STATUS
+========================= */
+
+.status{
+
+    padding:12px;
+    border-radius:8px;
+    color:white;
+    font-weight:bold;
+    margin-top:15px;
+    font-size:18px;
+}
+
+.full{
+
+    background:#e53935;
+}
+
+.empty{
+
+    background:#43a047;
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+@media(max-width:768px){
+
+    .container{
+
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1> PARKING MANAGEMENT SYSTEM</h1>
+
+<!-- =========================
+EXIT BUTTON
+========================= -->
+
+<div class="exit-container">
+
+    <button id="exitBtn">
+        ⬅ Thoát
+    </button>
+
+</div>
+
+<!-- =========================
+SUMMARY
+========================= -->
+
+<div class="summary">
+
+    <div class="card-summary">
+
+        <h2 id="totalSlots">
+            9
+        </h2>
+
+        <p>Tổng vị trí</p>
+
+    </div>
+
+    <div class="card-summary">
+
+        <h2
+            id="emptySlots"
+            style="color:#43a047;"
+        >
+            0
+        </h2>
+
+        <p>Vị trí còn trống</p>
+
+    </div>
+
+    <div class="card-summary">
+
+        <h2
+            id="fullSlots"
+            style="color:#e53935;"
+        >
+            0
+        </h2>
+
+        <p>Vị trí có xe</p>
+
+    </div>
+
+</div>
+
+<!-- =========================
+GRID
+========================= -->
+
+<div class="container" id="parkingContainer"></div>
+
+<script type="module">
+
+// =============================
+// FIREBASE IMPORT
+// =============================
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    onValue
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// =============================
+// FIREBASE CONFIG
+// =============================
+
+const firebaseConfig = {
+
+    apiKey: "AIzaSyBTWpFWI6qf975JB2RV8Q1Vs-YTta5PlYY",
+
+    authDomain: "ps-01-583ef.firebaseapp.com",
+
+    databaseURL:
+    "https://ps-01-583ef-default-rtdb.firebaseio.com",
+
+    projectId: "ps-01-583ef",
+
+    storageBucket:
+    "ps-01-583ef.firebasestorage.app",
+
+    messagingSenderId: "807899927486",
+
+    appId:
+    "1:807899927486:web:c729d1ab88c916fbaddfef",
+
+    measurementId: "G-K3FFQTTCQY"
+};
+
+// =============================
+// INIT FIREBASE
+// =============================
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+// =============================
+// IMAGE PATH
+// =============================
+
+// THAY FILE ẢNH TRONG THƯ MỤC img
+
+const IMAGE_HAVE_CAR =
+"img/honda-civic-x-hatchback-2017-V-3287-9148-1474017702.JPG";
+
+const IMAGE_EMPTY =
+"img/SIEMENS.PNG";
+
+// =============================
+// CREATE UI
+// =============================
+
+const container =
+document.getElementById("parkingContainer");
+
+for(let i = 1; i <= 9; i++){
+
+    container.innerHTML += `
+
+        <div class="slot">
+
+            <img
+                id="img${i}"
+                src="${IMAGE_EMPTY}"
+                alt=""
+            >
+
+            <h2>
+                Location ${i}
+            </h2>
+
+            <div
+                class="status empty"
+                id="status${i}"
+            >
+                Không có xe
+            </div>
+
+        </div>
+
+    `;
+}
+
+// =============================
+// READ FIREBASE REALTIME
+// =============================
+
+const statusRef =
+ref(db, "Status_Location");
+
+onValue(statusRef, (snapshot) => {
+
+    const data = snapshot.val();
+
+    let emptyCount = 0;
+
+    let fullCount = 0;
+
+    if(data){
+
+        for(let i = 1; i <= 9; i++){
+
+            const value =
+            data["L" + i];
+
+            const statusDiv =
+            document.getElementById(`status${i}`);
+
+            const img =
+            document.getElementById(`img${i}`);
+
+            // =====================
+            // CÓ XE
+            // =====================
+
+            if(value == 1){
+
+                fullCount++;
+
+                statusDiv.innerHTML =
+                "Có xe";
+
+                statusDiv.className =
+                "status full";
+
+                img.src =
+                IMAGE_HAVE_CAR;
+
+            }
+
+            // =====================
+            // KHÔNG CÓ XE
+            // =====================
+
+            else{
+
+                emptyCount++;
+
+                statusDiv.innerHTML =
+                "Không có xe";
+
+                statusDiv.className =
+                "status empty";
+
+                img.src =
+                IMAGE_EMPTY;
+
+            }
+
+        }
+
+        // =====================
+        // UPDATE SUMMARY
+        // =====================
+
+        document.getElementById("totalSlots")
+        .innerHTML = 9;
+
+        document.getElementById("emptySlots")
+        .innerHTML = emptyCount;
+
+        document.getElementById("fullSlots")
+        .innerHTML = fullCount;
+
+    }
+
+});
+
+// =============================
+// EXIT BUTTON
+// =============================
+
+document.getElementById("exitBtn")
+.addEventListener("click", function(){
+
+    window.location.href =
+    "index.html";
+
+});
+
+</script>
+
+</body>
+</html>
